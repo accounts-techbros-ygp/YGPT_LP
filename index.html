@@ -133,6 +133,7 @@ a{ color:inherit; }
 .callout.urgent{ border-color:var(--danger); border-left-width:4px; background:var(--danger-soft); }
 .callout .c-body{ flex:1 1 100%; min-width:0; }
 .callout .cd{ margin-right:auto; }
+.callout .c-link{ margin-left:auto; }
 .callout .ch{ font-weight:700; color:var(--ink); margin-right:8px; }
 .callout .tag{ display:inline-block; font-size:11.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--surface); background:var(--danger-ink); border-radius:5px; padding:1px 6px; margin-right:8px; vertical-align:1px; }
 .callout .cd{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:700; color:var(--accent-strong); background:var(--notice-bg); border:1px solid var(--notice-line); border-radius:999px; padding:3px 10px; white-space:nowrap; font-variant-numeric:tabular-nums; }
@@ -313,7 +314,7 @@ const ROLES = [
       { name: "National Immunisation Program", logo: "health-gov", url: "https://www.health.gov.au/resources/publications/national-immunisation-program-schedule?language=en", icon: "shield" },
       { name: "Outlook", sec: "day", logo: "outlook", url: "https://outlook.office.com/", icon: "mail" },
       { name: "Playbook", sec: "day", logo: "sharepoint", url: "https://yourgpcanberra.sharepoint.com/sites/TheNewPlaybook", icon: "folder" },
-      { name: "Tasky", sec: "apps", logo: "unicorn", url: "https://tasky.ygpapp.com/", icon: "check" },
+      { name: "Tasky", sec: "apps", logo: "unicorn", url: "https://yourgp.prod.ygpapp.com/", icon: "check" },
       { name: "healthdirect", logo: "healthdirect", url: "https://www.healthdirect.gov.au", icon: "info" },
       { name: "Medicare Mental Health", logo: "medicare-mh", url: "https://www.headtohealth.gov.au", icon: "heart" }
     ]
@@ -337,9 +338,11 @@ const SECTIONS = [
      urgent: true          (orange edge + "Urgent" tag)
      theme:  "xmas"        (festive red and green styling)
      emoji / emojiAfter    (emoji shown before the title / after the text)
+     countdown: false      (still ends on its date, just hides the countdown pill)
      link:   { text: "Read more", url: "https://..." }
    ============================================================ */
 const ANNOUNCEMENTS = [
+  { emoji: "🎉", title: "Tasky is live!", text: "Open it from here, or any time from Our apps below.", roles: ["reception"], until: "2026-11-26", countdown: false, link: { text: "Open Tasky", url: "https://yourgp.prod.ygpapp.com/" } },
   { title: "Third GP meeting of 2026: Tuesday 8 December at YourGP@Denman", text: "Dinner at Denman from 6pm, then the hybrid meeting starts at 6:30pm. Please RSVP either way so we can plan.", roles: ["doctors"], until: "2026-12-08 18:30", link: { text: "RSVP now", url: "https://forms.cloud.microsoft/r/1WLLkJ3Kuy" } },
   { theme: "xmas", emoji: "🎄", emojiAfter: "🎅🎁", title: "YourGP Christmas party: Sunday 29 November, 6pm at Beltana Farm", text: "Our annual Christmas party is coming up. RSVP by Wednesday 18 November.", until: "2026-11-18", link: { text: "RSVP now", url: "https://forms.cloud.microsoft/r/sRdDQPu3r6" } },
   { theme: "xmas", emoji: "🎄", emojiAfter: "🎅", title: "YourGP Christmas party: Sunday 29 November, 6pm at Beltana Farm", text: "RSVP has ended. Please contact Mel.", from: "2026-11-19", until: "2026-11-29 18:00" },
@@ -494,7 +497,7 @@ function tickCountdowns(){
     el.innerHTML = `${clockIc}<span>${c.t}</span>${c.date ? `<span class="cd-date">· ${c.full.replace('Ends ', 'ends ')}</span>` : ''}`;
     el.classList.toggle('week', c.level === 'week');
     el.classList.toggle('final', c.level === 'final');
-    const li = el.closest('.callout'); if(li) li.classList.toggle('closing', !!c.level);
+    const li = el.closest('.callout'); if(li && !el.hidden) li.classList.toggle('closing', !!c.level);
     el.setAttribute('title', c.full);
   });
 }
@@ -524,7 +527,7 @@ function show(id){
       ${live.sort((a,b) => (b.urgent?1:0) - (a.urgent?1:0)).map(a => `
         <li class="callout${a.urgent ? ' urgent' : ''}${a.theme ? ' theme-' + esc(a.theme) : ''}">
           <div class="c-body">${a.urgent ? '<span class="tag">Urgent</span>' : ''}${a.emoji ? `<span class="c-emoji" aria-hidden="true">${esc(a.emoji)}</span>` : ''}<span class="ch">${esc(a.title)}</span>${a.text ? `<span class="c-text">${esc(a.text)}</span>` : ''}${a.emojiAfter ? ` <span class="c-emoji" aria-hidden="true">${esc(a.emojiAfter)}</span>` : ''}</div>
-          ${a.until ? `<span class="cd" data-end="${endOf(a.until)}" data-timed="${/\d:\d/.test(a.until) ? 1 : 0}"></span>` : ''}
+          ${a.until ? `<span class="cd"${a.countdown === false ? ' hidden' : ''} data-end="${endOf(a.until)}" data-timed="${/\d:\d/.test(a.until) ? 1 : 0}"></span>` : ''}
           ${a.link ? `<a class="c-link" href="${esc(a.link.url)}" target="_blank" rel="noopener">${esc(a.link.text)}<span class="sr-only"> for ${esc(a.title)} (opens in a new tab)</span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg></a>` : ''}
         </li>`).join('')}
       </ul>
